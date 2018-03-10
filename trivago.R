@@ -60,7 +60,21 @@ ml_3$num_loc <- range01(ml_3$num_loc)
 
 predict_set <- ml_3[ml_3$hits == "\\N", -c(6, 12:ncol(ml_3))]
 dat <- ml_3[ml_3[,"hits"] != "\\N", -c(6, 12:ncol(ml_3))]
+
+hits_vec <- ml_3[ml_3[,"hits"] != "\\N",]$hits
+hits_vec <- as.numeric(hits_vec)
+hits_vec <- hits_vec[!hits_vec %in% boxplot.stats(hits_vec)$out]
+min(hits_vec)
+max(hits_vec)
+
 dat$hits <- as.numeric(dat$hits)
+
+# summary(dat$hits)
+#
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 2.000   3.000   6.000   9.329  13.000  34.000 
+# rescale = 2+scaled_hits*32
+
 dat <- dat[!dat$hits %in% boxplot.stats(dat$hits)$out,]
 dat$hits <- range01(dat$hits)
 
