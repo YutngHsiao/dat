@@ -21,7 +21,7 @@ ml_$num_loc <- ifelse(nchar(ml_$path_id_set)>0, str_count(ml_$path_id_set, ";")+
 ml_[is.na(ml_$num_loc),]$num_loc <- 0
 tb1 <- as.data.frame(table(str))
 tb1 <- tb1[order(-tb1$Freq),]
-paths <- as.character(tb1[3:10,]$str)
+paths <- as.character(tb1[1:10,]$str)
 for (i in paths){
   pattern <- paste0(i,"|^",i,";|;",i,"$|;",i,";")
   
@@ -32,6 +32,7 @@ for (i in paths){
 summary(ml_)
 #length(ml_[is.na(ml_$session_durantion),]$session_durantion) #668
 ml_1 <- ml_[!is.na(ml_$session_durantion),] #the removal of NA values
+ml_1$session_durantion <- as.numeric(ml_1$session_durantion)
 summary(ml_1)
 
 ml_2 <- ml_1[!ml_1$session_durantion %in% boxplot.stats(ml_1$session_durantion)$out,]
@@ -57,20 +58,19 @@ ml_3$session_durantion <- range01(ml_3$session_durantion)
 
 ml_3$num_loc <- range01(ml_3$num_loc)
 
-predict_set <- ml_3[ml_3$hits == "\\N", -c(6, ncol(ml_3))]
-dat <- ml_3[ml_3[,"hits"] != "\\N", -c(6, 11:13, ncol(ml_3))]
+predict_set <- ml_3[ml_3$hits == "\\N", -c(6, 12:ncol(ml_3))]
+dat <- ml_3[ml_3[,"hits"] != "\\N", -c(6, 12:ncol(ml_3))]
 dat$hits <- as.numeric(dat$hits)
 dat <- dat[!dat$hits %in% boxplot.stats(dat$hits)$out,]
 dat$hits <- range01(dat$hits)
 
+library(corrplot)
 corrplot(cor(dat))
 cor_marix <- cor(dat)
 pca <- prcomp(dat, center = TRUE, scale = TRUE)
 biplot(pca,  xlabs = rep("·", nrow(dat)))
-
-dat_ <- dat[,rownames(cor_marix[cor_marix$hits>.05,])]
-summary(dat_)
-
+##
+dat <- dat[, 4:10]
 
 
 ############## SVM
@@ -98,10 +98,7 @@ training[["V1"]] = factor(training[["V1"]]) #conversion of V1 integer variable t
 #Training & Preprocessing 
 trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 set.seed(3333)
-knn_fit <- train(V1 ~., data = training, method = "knn",
-                 trControl=trctrl,
-                 preProcess = c("center", "scale"),
-                 tuneLength = 10)
+knn_fit <- train(hits ~., dat[1:10000,], method = "knn", preProcess = c("center", "scale"))
 
 knn_fit #knn classifier
 
@@ -109,8 +106,9 @@ knn_fit #knn classifier
 plot(knn_fit) 
 
 #predict classes for test set using knn classifier
-test_pred <- predict(knn_fit, newdata = testing)
+test_pred <- predict(knn_fit, newdata = dat[10001:10999,])
 test_pred
 
 #Test set Statistics 
-confusionMatrix(test_pred, testing$V1 ) 
+confusionMatrix(test_pred, dat[10001:10999,]$hits ) 
+cm <- cbind(test_pred, dat[10001:10999,]$hits ) 
