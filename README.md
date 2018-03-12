@@ -1,7 +1,4 @@
-Trivago Data Science Code Documentation
-YutingHsiao
-
-March 11, 2018
+# Trivago Data Science Code Documentation
 
 Code Documentation
 This is an R Markdown document. Codes are done in R and Python tensorflow, tensorflow is for performance comparism of different models (SVM & Neural network). For more details please check my github https://github.com/YutngHsiao/dat.
